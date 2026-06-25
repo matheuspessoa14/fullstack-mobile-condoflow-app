@@ -32,13 +32,12 @@ public class PackageDeliveryController {
         PackageDelivery packageDelivery = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Encomenda não encontrada"));
 
-        packageDelivery.setRecipientName(data.getRecipientName());
-        packageDelivery.setApartmentNumber(data.getApartmentNumber());
-        packageDelivery.setBlock(data.getBlock());
-        packageDelivery.setDescription(data.getDescription());
+        packageDelivery.setResident(data.getResident());
+        packageDelivery.setDate(data.getDate());
+        packageDelivery.setTime(data.getTime());
+        packageDelivery.setSize(data.getSize());
         packageDelivery.setStatus(data.getStatus());
-        packageDelivery.setReceivedAt(data.getReceivedAt());
-        packageDelivery.setDeliveredAt(data.getDeliveredAt());
+        packageDelivery.setNotes(data.getNotes());
 
         return repository.save(packageDelivery);
     }

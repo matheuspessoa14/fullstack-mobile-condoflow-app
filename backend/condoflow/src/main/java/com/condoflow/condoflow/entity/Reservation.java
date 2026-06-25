@@ -3,8 +3,6 @@ package com.condoflow.condoflow.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Table(name = "reservations")
 @Getter
@@ -18,13 +16,12 @@ public class Reservation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String residentName;
-    private String apartmentNumber;
-    private String block;
-
-    private String areaName;
-
-    private LocalDateTime reservationDate;
-
+    private String area;
+    private String date;
+    private String time;
+    private String guests;
     private String status;
+
+    @Column(columnDefinition = "TEXT")
+    private String notes;
 }

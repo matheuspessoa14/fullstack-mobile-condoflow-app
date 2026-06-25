@@ -3,8 +3,6 @@ package com.condoflow.condoflow.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Table(name = "visitors")
 @Getter
@@ -19,11 +17,9 @@ public class Visitor {
     private Long id;
 
     private String name;
-    private String document;
-    private String phone;
-    private String apartmentNumber;
-    private String block;
-    private String purpose;
+    private String date;
+    private String time;
 
-    private LocalDateTime visitDate;
+    @Column(columnDefinition = "TEXT")
+    private String notes;
 }

@@ -33,12 +33,9 @@ public class VisitorController {
                 .orElseThrow(() -> new RuntimeException("Visitante não encontrado"));
 
         visitor.setName(data.getName());
-        visitor.setDocument(data.getDocument());
-        visitor.setPhone(data.getPhone());
-        visitor.setApartmentNumber(data.getApartmentNumber());
-        visitor.setBlock(data.getBlock());
-        visitor.setPurpose(data.getPurpose());
-        visitor.setVisitDate(data.getVisitDate());
+        visitor.setDate(data.getDate());
+        visitor.setTime(data.getTime());
+        visitor.setNotes(data.getNotes());
 
         return repository.save(visitor);
     }

@@ -3,8 +3,6 @@ package com.condoflow.condoflow.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Table(name = "packages")
 @Getter
@@ -18,12 +16,12 @@ public class PackageDelivery {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String recipientName;
-    private String apartmentNumber;
-    private String block;
-    private String description;
+    private String resident;
+    private String date;
+    private String time;
+    private String size;
     private String status;
 
-    private LocalDateTime receivedAt;
-    private LocalDateTime deliveredAt;
+    @Column(columnDefinition = "TEXT")
+    private String notes;
 }

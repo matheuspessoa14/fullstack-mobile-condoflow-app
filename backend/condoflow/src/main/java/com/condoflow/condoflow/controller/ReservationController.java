@@ -33,12 +33,12 @@ public class ReservationController {
         Reservation reservation = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Reserva não encontrada"));
 
-        reservation.setResidentName(data.getResidentName());
-        reservation.setApartmentNumber(data.getApartmentNumber());
-        reservation.setBlock(data.getBlock());
-        reservation.setAreaName(data.getAreaName());
-        reservation.setReservationDate(data.getReservationDate());
+        reservation.setArea(data.getArea());
+        reservation.setDate(data.getDate());
+        reservation.setTime(data.getTime());
+        reservation.setGuests(data.getGuests());
         reservation.setStatus(data.getStatus());
+        reservation.setNotes(data.getNotes());
 
         return repository.save(reservation);
     }

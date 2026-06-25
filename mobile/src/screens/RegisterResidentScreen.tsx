@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -9,8 +10,12 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { api } from "../services/api";
 import { BRAND_COLORS } from "../assets/branding";
-import { CondoBottomNav, CondoBottomTab } from "../components/common/CondoBottomNav";
+import {
+  CondoBottomNav,
+  CondoBottomTab,
+} from "../components/common/CondoBottomNav";
 import { CondoTopHeader } from "../components/common/CondoTopHeader";
 
 interface RegisterResidentScreenProps {
@@ -36,6 +41,30 @@ export function RegisterResidentScreen({
     apartment.trim().length > 0 &&
     block.trim().length > 0;
 
+  async function handleRegisterResident() {
+    try {
+      await api.post("/residents", {
+        name: fullName,
+        cpf,
+        phone,
+        email,
+        apartmentNumber: apartment,
+        block,
+      });
+
+      Alert.alert("Sucesso", "Morador cadastrado com sucesso!");
+
+      setFullName("");
+      setCpf("");
+      setPhone("");
+      setEmail("");
+      setApartment("");
+      setBlock("");
+    } catch (error) {
+      console.log(error);
+      Alert.alert("Erro", "Não foi possível cadastrar o morador.");
+    }
+  }
   return (
     <KeyboardAvoidingView
       style={styles.screen}
@@ -127,9 +156,13 @@ export function RegisterResidentScreen({
             </View>
 
             <TouchableOpacity
-              style={[styles.confirmButton, !canSubmit && styles.confirmButtonDisabled]}
+              style={[
+                styles.confirmButton,
+                !canSubmit && styles.confirmButtonDisabled,
+              ]}
               disabled={!canSubmit}
               accessibilityRole="button"
+              onPress={handleRegisterResident}
             >
               <Text style={styles.confirmButtonText}>Cadastrar!</Text>
             </TouchableOpacity>

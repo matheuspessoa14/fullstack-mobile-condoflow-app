@@ -1,5 +1,6 @@
 ﻿import { useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -42,8 +43,14 @@ export function LoginScreen({ onLogin, onForgotPassword }: LoginScreenProps) {
       style={styles.screen}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <View style={[styles.circle, styles.topCircleLarge]} pointerEvents="none" />
-      <View style={[styles.circle, styles.topCircleSmall]} pointerEvents="none" />
+      <View
+        style={[styles.circle, styles.topCircleLarge]}
+        pointerEvents="none"
+      />
+      <View
+        style={[styles.circle, styles.topCircleSmall]}
+        pointerEvents="none"
+      />
 
       <ScrollView
         style={styles.scroll}
@@ -75,12 +82,18 @@ export function LoginScreen({ onLogin, onForgotPassword }: LoginScreenProps) {
             style={styles.input}
           />
 
-          <TouchableOpacity onPress={onForgotPassword} accessibilityRole="button">
+          <TouchableOpacity
+            onPress={onForgotPassword}
+            accessibilityRole="button"
+          >
             <Text style={styles.helperText}>Esqueceu a senha?</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.loginButton, !canLogin && styles.loginButtonDisabled]}
+            style={[
+              styles.loginButton,
+              !canLogin && styles.loginButtonDisabled,
+            ]}
             onPress={() => onLogin(resolveRoleFromEmail())}
             disabled={!canLogin}
             accessibilityRole="button"
@@ -99,9 +112,22 @@ export function LoginScreen({ onLogin, onForgotPassword }: LoginScreenProps) {
             </Pressable>
           </View>
 
-          <Text style={styles.signUpText}>
-            Ainda nao tem cadastro? <Text style={styles.signUpLink}>Cadastre-se</Text>
-          </Text>
+          <TouchableOpacity
+            style={styles.signUpButton}
+            activeOpacity={0.7}
+            onPress={() => {
+              console.log("Clicou em Cadastre-se");
+              Alert.alert(
+                "Cadastro",
+                "Para realizar seu cadastro, entre em contato com o síndico do condomínio.",
+              );
+            }}
+          >
+            <Text style={styles.signUpText}>
+              Ainda não tem cadastro?{" "}
+              <Text style={styles.signUpLink}>Cadastre-se</Text>
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -223,4 +249,10 @@ const styles = StyleSheet.create({
     color: BRAND_COLORS.accent,
     textDecorationLine: "underline",
   },
+  signUpButton: {
+  paddingVertical: 12,
+  paddingHorizontal: 20,
+  alignItems: "center",
+  justifyContent: "center",
+},
 });

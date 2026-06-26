@@ -21,7 +21,7 @@ import { NotificationCallDetailResidentScreen } from "./src/screens/Notification
 import { NotificationCallSyndicScreen } from "./src/screens/NotificationCallSyndicScreen";
 import { NotificationDebtDetailScreen } from "./src/screens/NotificationDebtDetailScreen";
 import { NotificationNewCallScreen } from "./src/screens/NotificationNewCallScreen";
-import { NotificationNewNoticeScreen } from "./src/screens/NotificationNewNoticeScreen";
+
 import { NotificationPackageDetailScreen } from "./src/screens/NotificationPackageDetailScreen";
 import { NotificationReservationConfirmScreen } from "./src/screens/NotificationReservationConfirmScreen";
 import { NotificationResidentDetailScreen } from "./src/screens/NotificationResidentDetailScreen";
@@ -109,14 +109,14 @@ export default function App() {
   >("reservations");
   const [screen, setScreen] = useState<AppScreen>("splash");
   const isAuthScreen =
-    screen === "splash" ||
-    screen === "login" ||
-    screen === "forgotPassword";
+    screen === "splash" || screen === "login" || screen === "forgotPassword";
   const statusBarStyle = isAuthScreen ? "light" : "dark";
 
   const goHome = () => setScreen(homeScreen);
 
-  const openRequestReservation = (origin: "reservations" | "condoReservations") => {
+  const openRequestReservation = (
+    origin: "reservations" | "condoReservations",
+  ) => {
     setReservationReturnScreen(origin);
     setScreen("requestReservation");
   };
@@ -243,7 +243,9 @@ export default function App() {
         <HomeSindicoScreen
           onOpenReservations={() => setScreen("condoReservations")}
           onOpenCalls={() => setScreen("callsSyndic")}
-          onOpenNewNotice={() => openNotification("notifNewNotice", "homeSindico")}
+          onOpenNewNotice={() =>
+            openNotification("notifNewNotice", "homeSindico")
+          }
           onOpenVisitorRegistration={() => setScreen("visitorListing")}
           onOpenPackages={() => setScreen("packageListing")}
           onOpenFinance={() => setScreen("financeSyndic")}
@@ -289,7 +291,11 @@ export default function App() {
     }
 
     if (screen === "visitConfirmation") {
-      return <VisitConfirmationScreen onExit={() => setScreen(registerVisitorReturnScreen)} />;
+      return (
+        <VisitConfirmationScreen
+          onExit={() => setScreen(registerVisitorReturnScreen)}
+        />
+      );
     }
 
     if (screen === "packages") {
@@ -303,7 +309,9 @@ export default function App() {
     }
 
     if (screen === "packageConfirmation") {
-      return <PackageConfirmationScreen onExit={() => setScreen("packageListing")} />;
+      return (
+        <PackageConfirmationScreen onExit={() => setScreen("packageListing")} />
+      );
     }
 
     if (screen === "packageListing") {
@@ -311,7 +319,9 @@ export default function App() {
         <PackageListingScreen
           onGoBack={goHome}
           onRegisterPackage={() => setScreen("registerPackage")}
-          onOpenPackageDetails={() => openNotification("notifPackageDetail", "packageListing")}
+          onOpenPackageDetails={() =>
+            openNotification("notifPackageDetail", "packageListing")
+          }
           onPressTab={handleBottomTabNavigation}
         />
       );
@@ -332,7 +342,9 @@ export default function App() {
         <ResidentListingSyndicScreen
           onGoBack={goHome}
           onRegisterResident={() => setScreen("registerResident")}
-          onOpenResidentDetails={() => openNotification("notifResidentDetail", "residentListingSyndic")}
+          onOpenResidentDetails={() =>
+            openNotification("notifResidentDetail", "residentListingSyndic")
+          }
           onPressTab={handleBottomTabNavigation}
         />
       );
@@ -351,7 +363,9 @@ export default function App() {
       return (
         <ResidentListingScreen
           onGoBack={goHome}
-          onOpenResidentDetails={() => openNotification("notifResidentDetail", "residentListing")}
+          onOpenResidentDetails={() =>
+            openNotification("notifResidentDetail", "residentListing")
+          }
           onPressTab={handleBottomTabNavigation}
         />
       );
@@ -362,7 +376,9 @@ export default function App() {
         <VisitorListingScreen
           onGoBack={goHome}
           onReleaseVisit={() => openRegisterVisitor("visitorListing")}
-          onOpenVisitorDetails={() => openNotification("notifVisitDetail", "visitorListing")}
+          onOpenVisitorDetails={() =>
+            openNotification("notifVisitDetail", "visitorListing")
+          }
           onPressTab={handleBottomTabNavigation}
         />
       );
@@ -372,7 +388,9 @@ export default function App() {
       return (
         <ReservationsScreen
           onGoBack={goHome}
-          onOpenRequestReservation={() => openRequestReservation("reservations")}
+          onOpenRequestReservation={() =>
+            openRequestReservation("reservations")
+          }
           onPressTab={handleBottomTabNavigation}
         />
       );
@@ -382,7 +400,9 @@ export default function App() {
       return (
         <CondoReservationsScreen
           onGoBack={goHome}
-          onOpenRequestReservation={() => openRequestReservation("condoReservations")}
+          onOpenRequestReservation={() =>
+            openRequestReservation("condoReservations")
+          }
           onOpenResidentRequestDetails={() =>
             openNotification("notifReservationConfirm", "condoReservations")
           }
@@ -457,7 +477,9 @@ export default function App() {
       return (
         <CallsSyndicScreen
           onGoBack={goHome}
-          onOpenCallDetails={() => openNotification("notifCallSyndic", "callsSyndic")}
+          onOpenCallDetails={() =>
+            openNotification("notifCallSyndic", "callsSyndic")
+          }
           onPressTab={handleBottomTabNavigation}
         />
       );
@@ -468,7 +490,9 @@ export default function App() {
         <CallsScreen
           onGoBack={goHome}
           onOpenNewCall={() => openNotification("notifNewCall", "calls")}
-          onOpenCallDetails={() => openNotification("notifCallDetailResident", "calls")}
+          onOpenCallDetails={() =>
+            openNotification("notifCallDetailResident", "calls")
+          }
           onPressTab={handleBottomTabNavigation}
         />
       );
@@ -478,12 +502,18 @@ export default function App() {
       return (
         <NotificationsResidentScreen
           onGoBack={goHome}
-          onOpenNewNotice={() => openNotification("notifNewNotice", "notificationsResident")}
+          onOpenNewNotice={() =>
+            openNotification("notifNewNotice", "notificationsResident")
+          }
           onOpenReservationConfirm={() =>
             openNotification("notifReservationConfirm", "notificationsResident")
           }
-          onOpenDebtDetail={() => openNotification("notifDebtDetail", "notificationsResident")}
-          onOpenCallSyndic={() => openNotification("notifCallSyndic", "notificationsResident")}
+          onOpenDebtDetail={() =>
+            openNotification("notifDebtDetail", "notificationsResident")
+          }
+          onOpenCallSyndic={() =>
+            openNotification("notifCallSyndic", "notificationsResident")
+          }
           onOpenCallDetail={() =>
             openNotification("notifCallDetailResident", "notificationsResident")
           }

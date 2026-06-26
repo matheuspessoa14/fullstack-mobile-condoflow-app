@@ -17,6 +17,7 @@ public class Visitor {
     private Long id;
 
     private String name;
+    private String email;
     private String date;
     private String time;
 

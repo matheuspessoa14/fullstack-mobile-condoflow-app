@@ -60,9 +60,15 @@ export function RegisterResidentScreen({
       setEmail("");
       setApartment("");
       setBlock("");
-    } catch (error) {
-      console.log(error);
-      Alert.alert("Erro", "Não foi possível cadastrar o morador.");
+    } catch (error: any) {
+      console.log(
+        "ERRO AO CADASTRAR:",
+        error?.response?.data || error?.message || error,
+      );
+      Alert.alert(
+        "Erro",
+        error?.message || "Não foi possível cadastrar o morador.",
+      );
     }
   }
   return (

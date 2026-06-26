@@ -33,6 +33,7 @@ public class VisitorController {
                 .orElseThrow(() -> new RuntimeException("Visitante não encontrado"));
 
         visitor.setName(data.getName());
+        visitor.setEmail(data.getEmail());
         visitor.setDate(data.getDate());
         visitor.setTime(data.getTime());
         visitor.setNotes(data.getNotes());

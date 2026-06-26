@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -10,8 +11,12 @@ import {
   View,
 } from "react-native";
 import { BRAND_COLORS } from "../assets/branding";
-import { CondoBottomNav, CondoBottomTab } from "../components/common/CondoBottomNav";
+import {
+  CondoBottomNav,
+  CondoBottomTab,
+} from "../components/common/CondoBottomNav";
 import { CondoTopHeader } from "../components/common/CondoTopHeader";
+import { api } from "../services/api";
 
 interface RegisterVisitorScreenProps {
   onGoBack: () => void;
@@ -25,10 +30,44 @@ export function RegisterVisitorScreen({
   onPressTab,
 }: RegisterVisitorScreenProps) {
   const [name, setName] = useState("Luccas Bentim");
+  const [email, setEmail] = useState("");
   const [date, setDate] = useState("13/03/2026");
   const [time, setTime] = useState("18:00");
   const [notes, setNotes] = useState("");
-  const canSubmit = name.trim().length > 0 && date.trim().length > 0 && time.trim().length > 0;
+
+  const canSubmit =
+    name.trim().length > 0 &&
+    email.trim().length > 0 &&
+    date.trim().length > 0 &&
+    time.trim().length > 0;
+
+  async function handleRegisterVisitor() {
+    try {
+      await api.post("/visitors", {
+        name,
+        email,
+        date,
+        time,
+        notes,
+      });
+
+      Alert.alert("Sucesso", "Visitante cadastrado com sucesso!");
+
+      setName("");
+      setEmail("");
+      setDate("");
+      setTime("");
+      setNotes("");
+
+      onConfirmVisit();
+    } catch (error: any) {
+      console.log(
+        "ERRO AO CADASTRAR VISITANTE:",
+        error?.response?.data || error?.message || error
+      );
+      Alert.alert("Erro", "Não foi possível cadastrar o visitante.");
+    }
+  }
 
   return (
     <KeyboardAvoidingView
@@ -53,6 +92,17 @@ export function RegisterVisitorScreen({
             style={styles.field}
             placeholder="Nome do visitante"
             placeholderTextColor={BRAND_COLORS.mutedText}
+          />
+
+          <Text style={styles.label}>E-mail do Visitante:</Text>
+          <TextInput
+            value={email}
+            onChangeText={setEmail}
+            style={styles.field}
+            placeholder="email@exemplo.com"
+            placeholderTextColor={BRAND_COLORS.mutedText}
+            keyboardType="email-address"
+            autoCapitalize="none"
           />
 
           <Text style={styles.label}>Data:</Text>
@@ -92,8 +142,11 @@ export function RegisterVisitorScreen({
           />
 
           <TouchableOpacity
-            style={[styles.confirmButton, !canSubmit && styles.confirmButtonDisabled]}
-            onPress={onConfirmVisit}
+            style={[
+              styles.confirmButton,
+              !canSubmit && styles.confirmButtonDisabled,
+            ]}
+            onPress={handleRegisterVisitor}
             disabled={!canSubmit}
             accessibilityRole="button"
           >

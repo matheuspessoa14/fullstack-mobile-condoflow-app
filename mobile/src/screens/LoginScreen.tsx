@@ -1,5 +1,6 @@
 ﻿import { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -11,32 +12,183 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
 import { BRAND_COLORS } from "../assets/branding";
 import { CondoBrandLockup } from "../components/common/CondoBrandLockup";
+import { api } from "../services/api";
+
+type UserRole = "morador" | "porteiro" | "sindico";
 
 interface LoginScreenProps {
-  onLogin: (role: "morador" | "porteiro" | "sindico") => void;
+  onLogin: (role: UserRole) => void;
   onForgotPassword: () => void;
 }
 
-export function LoginScreen({ onLogin, onForgotPassword }: LoginScreenProps) {
+interface LoginResponse {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+}
+
+export function LoginScreen({
+  onLogin,
+  onForgotPassword,
+}: LoginScreenProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const canLogin = email.trim().length > 0 && password.trim().length > 0;
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const resolveRoleFromEmail = (): "morador" | "porteiro" | "sindico" => {
-    const normalized = email.trim().toLowerCase();
+  const canLogin =
+    email.trim().length > 0 &&
+    password.length > 0 &&
+    !isSubmitting;
 
-    if (normalized.includes("porteiro")) {
+  function parseRole(role?: string): UserRole | null {
+    const normalizedRole = (role ?? "")
+      .trim()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+
+    if (normalizedRole === "morador") {
+      return "morador";
+    }
+
+    if (normalizedRole === "porteiro") {
       return "porteiro";
     }
 
-    if (normalized.includes("sindico")) {
+    if (normalizedRole === "sindico") {
       return "sindico";
     }
 
-    return "morador";
-  };
+    return null;
+  }
+
+  async function handleLogin() {
+    if (isSubmitting) {
+      return;
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!normalizedEmail || !password) {
+      Alert.alert(
+        "Atenção",
+        "Informe o e-mail e a senha."
+      );
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      console.log("LOGIN VIA API - ENVIANDO:", {
+        email: normalizedEmail,
+      });
+
+      const response = await api.post<LoginResponse>(
+        "/users/login",
+        {
+          email: normalizedEmail,
+          password,
+        }
+      );
+
+      console.log("LOGIN VIA API - RESPOSTA:", response.data);
+
+      if (!response.data) {
+        Alert.alert(
+          "Login não realizado",
+          "O servidor não retornou os dados do usuário."
+        );
+        return;
+      }
+
+      if (
+        !response.data.id ||
+        !response.data.email ||
+        !response.data.role
+      ) {
+        Alert.alert(
+          "Login não realizado",
+          "A resposta do servidor está incompleta."
+        );
+        return;
+      }
+
+      const validatedRole = parseRole(response.data.role);
+
+      if (!validatedRole) {
+        Alert.alert(
+          "Login não realizado",
+          "O usuário possui um perfil inválido."
+        );
+        return;
+      }
+
+      setPassword("");
+
+      onLogin(validatedRole);
+    } catch (error: any) {
+      const status = error?.response?.status;
+      const responseData = error?.response?.data;
+      const message = error?.message;
+
+      console.log("LOGIN VIA API - ERRO:", {
+        status,
+        responseData,
+        message,
+      });
+
+      let errorMessage =
+        "Não foi possível realizar o login.";
+
+      if (
+        message === "Network Error" ||
+        error?.code === "ERR_NETWORK"
+      ) {
+        errorMessage =
+          "Não foi possível conectar ao servidor. Verifique se o backend está ligado na porta 8090.";
+      } else if (status === 400) {
+        errorMessage =
+          "Informe corretamente o e-mail e a senha.";
+      } else if (status === 401 || status === 403) {
+        errorMessage =
+          "E-mail ou senha inválidos.";
+      } else if (status === 404) {
+        errorMessage =
+          "O serviço de login não foi encontrado.";
+      } else if (status >= 500) {
+        errorMessage =
+          "O servidor encontrou um erro ao realizar o login.";
+      } else if (responseData?.detail) {
+        errorMessage = responseData.detail;
+      } else if (responseData?.message) {
+        errorMessage = responseData.message;
+      } else if (
+        typeof responseData === "string" &&
+        responseData.trim()
+      ) {
+        errorMessage = responseData;
+      }
+
+      Alert.alert(
+        "Login não realizado",
+        errorMessage
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  function handleSocialLogin() {
+    Alert.alert(
+      "Indisponível",
+      "O login pelas redes sociais ainda não está disponível."
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -47,6 +199,7 @@ export function LoginScreen({ onLogin, onForgotPassword }: LoginScreenProps) {
         style={[styles.circle, styles.topCircleLarge]}
         pointerEvents="none"
       />
+
       <View
         style={[styles.circle, styles.topCircleSmall]}
         pointerEvents="none"
@@ -58,9 +211,14 @@ export function LoginScreen({ onLogin, onForgotPassword }: LoginScreenProps) {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.welcome}>Bem-vindo de volta!</Text>
+        <Text style={styles.welcome}>
+          Bem-vindo de volta!
+        </Text>
 
-        <CondoBrandLockup size="login" style={styles.brandRow} />
+        <CondoBrandLockup
+          size="login"
+          style={styles.brandRow}
+        />
 
         <View style={styles.form}>
           <TextInput
@@ -70,6 +228,11 @@ export function LoginScreen({ onLogin, onForgotPassword }: LoginScreenProps) {
             placeholderTextColor={BRAND_COLORS.textSubtle}
             keyboardType="email-address"
             autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="email"
+            textContentType="emailAddress"
+            editable={!isSubmitting}
+            returnKeyType="next"
             style={styles.input}
           />
 
@@ -79,14 +242,24 @@ export function LoginScreen({ onLogin, onForgotPassword }: LoginScreenProps) {
             placeholder="Senha"
             placeholderTextColor={BRAND_COLORS.textSubtle}
             secureTextEntry
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="password"
+            textContentType="password"
+            editable={!isSubmitting}
+            onSubmitEditing={handleLogin}
+            returnKeyType="go"
             style={styles.input}
           />
 
           <TouchableOpacity
             onPress={onForgotPassword}
+            disabled={isSubmitting}
             accessibilityRole="button"
           >
-            <Text style={styles.helperText}>Esqueceu a senha?</Text>
+            <Text style={styles.helperText}>
+              Esqueceu a senha?
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -94,38 +267,74 @@ export function LoginScreen({ onLogin, onForgotPassword }: LoginScreenProps) {
               styles.loginButton,
               !canLogin && styles.loginButtonDisabled,
             ]}
-            onPress={() => onLogin(resolveRoleFromEmail())}
+            onPress={handleLogin}
             disabled={!canLogin}
+            activeOpacity={0.7}
             accessibilityRole="button"
           >
-            <Text style={styles.loginButtonText}>Login</Text>
+            {isSubmitting ? (
+              <View style={styles.loadingContent}>
+                <ActivityIndicator
+                  size="small"
+                  color={BRAND_COLORS.white}
+                />
+
+                <Text style={styles.loginButtonText}>
+                  Entrando...
+                </Text>
+              </View>
+            ) : (
+              <Text style={styles.loginButtonText}>
+                Login
+              </Text>
+            )}
           </TouchableOpacity>
 
-          <Text style={styles.socialLabel}>ou cadastre-se com</Text>
+          <Text style={styles.socialLabel}>
+            ou entre com
+          </Text>
 
           <View style={styles.socialRow}>
-            <Pressable style={styles.socialButton} accessibilityRole="button">
-              <Text style={styles.socialButtonText}>f</Text>
+            <Pressable
+              style={styles.socialButton}
+              onPress={handleSocialLogin}
+              disabled={isSubmitting}
+              accessibilityRole="button"
+            >
+              <Text style={styles.socialButtonText}>
+                f
+              </Text>
             </Pressable>
-            <Pressable style={styles.socialButton} accessibilityRole="button">
-              <Text style={styles.socialButtonText}>G</Text>
+
+            <Pressable
+              style={styles.socialButton}
+              onPress={handleSocialLogin}
+              disabled={isSubmitting}
+              accessibilityRole="button"
+            >
+              <Text style={styles.socialButtonText}>
+                G
+              </Text>
             </Pressable>
           </View>
 
           <TouchableOpacity
             style={styles.signUpButton}
             activeOpacity={0.7}
+            disabled={isSubmitting}
             onPress={() => {
-              console.log("Clicou em Cadastre-se");
               Alert.alert(
                 "Cadastro",
-                "Para realizar seu cadastro, entre em contato com o síndico do condomínio.",
+                "Para realizar seu cadastro, entre em contato com o síndico do condomínio."
               );
             }}
+            accessibilityRole="button"
           >
             <Text style={styles.signUpText}>
               Ainda não tem cadastro?{" "}
-              <Text style={styles.signUpLink}>Cadastre-se</Text>
+              <Text style={styles.signUpLink}>
+                Cadastre-se
+              </Text>
             </Text>
           </TouchableOpacity>
         </View>
@@ -140,21 +349,25 @@ const styles = StyleSheet.create({
     backgroundColor: BRAND_COLORS.primaryLight,
     overflow: "hidden",
   },
+
   scroll: {
     flex: 1,
   },
+
   circle: {
     position: "absolute",
     borderRadius: 999,
     backgroundColor: BRAND_COLORS.accentSoft,
     opacity: 0.34,
   },
+
   topCircleLarge: {
     width: 208,
     height: 208,
     top: -88,
     left: -76,
   },
+
   topCircleSmall: {
     width: 118,
     height: 118,
@@ -162,6 +375,7 @@ const styles = StyleSheet.create({
     left: -26,
     opacity: 0.22,
   },
+
   content: {
     minHeight: "100%",
     paddingHorizontal: 28,
@@ -169,20 +383,24 @@ const styles = StyleSheet.create({
     paddingBottom: 48,
     alignItems: "center",
   },
+
   welcome: {
     color: BRAND_COLORS.white,
     fontSize: 22,
     fontWeight: "700",
     marginBottom: 34,
   },
+
   brandRow: {
     marginBottom: 42,
     alignSelf: "center",
   },
+
   form: {
     width: "100%",
     alignItems: "center",
   },
+
   input: {
     width: "100%",
     height: 52,
@@ -193,11 +411,13 @@ const styles = StyleSheet.create({
     color: BRAND_COLORS.text,
     marginBottom: 14,
   },
+
   helperText: {
     fontSize: 12,
     color: BRAND_COLORS.accentSoft,
     marginBottom: 22,
   },
+
   loginButton: {
     width: "100%",
     height: 54,
@@ -206,25 +426,37 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+
   loginButtonDisabled: {
     opacity: 0.5,
   },
+
   loginButtonText: {
     color: BRAND_COLORS.white,
     fontSize: 16,
     fontWeight: "700",
   },
+
+  loadingContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+  },
+
   socialLabel: {
     marginTop: 18,
     fontSize: 12,
     color: BRAND_COLORS.accentSoft,
   },
+
   socialRow: {
     flexDirection: "row",
     gap: 16,
     marginTop: 12,
     marginBottom: 26,
   },
+
   socialButton: {
     width: 38,
     height: 38,
@@ -235,24 +467,28 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "rgba(255,255,255,0.08)",
   },
+
   socialButtonText: {
     color: BRAND_COLORS.primaryDark,
     fontSize: 20,
     fontWeight: "700",
   },
+
+  signUpButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
   signUpText: {
     textAlign: "center",
     fontSize: 14,
     color: BRAND_COLORS.white,
   },
+
   signUpLink: {
     color: BRAND_COLORS.accent,
     textDecorationLine: "underline",
   },
-  signUpButton: {
-  paddingVertical: 12,
-  paddingHorizontal: 20,
-  alignItems: "center",
-  justifyContent: "center",
-},
 });
